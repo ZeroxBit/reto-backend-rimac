@@ -1,0 +1,44 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: serverlesskrlos
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+app: reto-rimac
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: reto-rimac
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/StarWarsTable"
+
+functions:
+  saveCharacter:
+    handler: src/lambdas/saveCharacter.saveCharacter
+    events:
+      - httpApi:
+          path: /saveCharacter
+          method: post
+  getCharacters:
+    handler: src/lambdas/getCharacters.getCharacters
+    events:
+      - httpApi:
+          path: /
+          method: get
+
+resources:
+  Resources:
+    StarWarsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: StarWarsTable
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
